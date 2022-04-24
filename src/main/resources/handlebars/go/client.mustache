@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -207,7 +208,7 @@ func (c *APIClient) prepareRequest(
 		if len(fileBytes) > 0 && fileName != "" {
 			w.Boundary()
 			//_, fileNm := filepath.Split(fileName)
-			part, err := w.CreateFormFile("file", filepath.Base(fileName))
+			part, err := createFormFile(w, "file", filepath.Base(fileName))
 			if err != nil {
 				return nil, err
 			}
@@ -336,7 +337,7 @@ func addFile(w *multipart.Writer, fieldName, path string) error {
 	}
 	defer file.Close()
 
-	part, err := w.CreateFormFile(fieldName, filepath.Base(path))
+	part, err := createFormFile(w, fieldName, filepath.Base(path))
 	if err != nil {
 		return err
 	}
@@ -453,6 +454,24 @@ func CacheExpires(r *http.Response) time.Time {
 
 func strlen(s string) int {
 	return utf8.RuneCountInString(s)
+}
+
+// createFromFile is used to specify Content-Type for form data file upload.
+func createFromFile(w *multipart.Writer, filename string) (io.Writer, error) {
+    h := make(textproto.MIMEHeader)
+	h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+			escapeQuotes(fieldname), escapeQuotes(filename)))
+	h.Set("Content-Type", guesstype(filename))
+	return w.CreatePart(h)
+}
+
+func guessType(filename string) string {
+    ext := filepath.Ext(filename)
+    mimetype := mime.TypeByExtension(ext)
+    if mimetype == "" {
+		mimetype = 'application/octet-stream'
+    }
+    return mimetype
 }
 
 // GenericSwaggerError Provides access to the body, error and model on returned errors.
