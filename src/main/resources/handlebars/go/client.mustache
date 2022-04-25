@@ -29,8 +29,6 @@ import (
 var (
 	jsonCheck = regexp.MustCompile("(?i:[application|text]/json)")
 	xmlCheck  = regexp.MustCompile("(?i:[application|text]/xml)")
-
-	quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 )
 
 // APIClient manages communication with the {{appName}} API v{{version}}
@@ -459,24 +457,26 @@ func strlen(s string) int {
 	return utf8.RuneCountInString(s)
 }
 
-// createFromFile is used to specify Content-Type for form data file upload.
-func createFromFile(w *multipart.Writer, filename string) (io.Writer, error) {
-    h := make(textproto.MIMEHeader)
-	h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
-			escapeQuotes(fieldname), escapeQuotes(filename)))
-	h.Set("Content-Type", guesstype(filename))
-	return w.CreatePart(h)
-}
+var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 
 func escapeQuotes(s string) string {
 	return quoteEscaper.Replace(s)
+}
+
+// createFromFile is used to specify Content-Type for form data file upload.
+func createFormFile(w *multipart.Writer, fieldName, fileName string) (io.Writer, error) {
+    h := make(textproto.MIMEHeader)
+	h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+			escapeQuotes(fieldName), escapeQuotes(fileName)))
+	h.Set("Content-Type", guessType(fileName))
+	return w.CreatePart(h)
 }
 
 func guessType(filename string) string {
     ext := filepath.Ext(filename)
     mimetype := mime.TypeByExtension(ext)
     if mimetype == "" {
-		mimetype = 'application/octet-stream'
+		mimetype = "application/octet-stream"
     }
     return mimetype
 }

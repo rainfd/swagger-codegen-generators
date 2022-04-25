@@ -162,13 +162,13 @@ func (a *{{{classname}}}Service) {{{nickname}}}(ctx context.Context{{#hasParams}
 {{/headerParams}}
 {{/hasHeaderParams}}
 {{#hasFormParams}}
+    var localVarFile *os.File
 {{#formParams}}
 {{#isFile}}
 {{#required}}
-    localVarFile := {{paramName}}
+    localVarFile = {{paramName}}
 {{/required}}
 {{^required}}
-    var localVarFile {{dataType}}
 	if localVarOptionals != nil && localVarOptionals.{{vendorExtensions.x-exportParamName}}.IsSet() {
 		localVarFileOk := false
 		localVarFile, localVarFileOk = localVarOptionals.{{vendorExtensions.x-exportParamName}}.Value().({{dataType}})
