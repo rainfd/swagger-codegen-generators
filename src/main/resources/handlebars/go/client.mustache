@@ -29,6 +29,8 @@ import (
 var (
 	jsonCheck = regexp.MustCompile("(?i:[application|text]/json)")
 	xmlCheck  = regexp.MustCompile("(?i:[application|text]/xml)")
+
+	quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 )
 
 // APIClient manages communication with the {{appName}} API v{{version}}
@@ -464,6 +466,10 @@ func createFromFile(w *multipart.Writer, filename string) (io.Writer, error) {
 			escapeQuotes(fieldname), escapeQuotes(filename)))
 	h.Set("Content-Type", guesstype(filename))
 	return w.CreatePart(h)
+}
+
+func escapeQuotes(s string) string {
+	return quoteEscaper.Replace(s)
 }
 
 func guessType(filename string) string {
