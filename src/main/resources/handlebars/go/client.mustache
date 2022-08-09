@@ -209,7 +209,7 @@ func (c *APIClient) prepareRequest(
 		if len(fileBytes) > 0 && fileName != "" {
 			w.Boundary()
 			//_, fileNm := filepath.Split(fileName)
-			part, err := createFormFile(w, "file", filepath.Base(fileName))
+			part, err := createFromFile(w, "file", filepath.Base(fileName))
 			if err != nil {
 				return nil, err
 			}
@@ -338,7 +338,7 @@ func addFile(w *multipart.Writer, fieldName, path string) error {
 	}
 	defer file.Close()
 
-	part, err := createFormFile(w, fieldName, filepath.Base(path))
+	part, err := createFromFile(w, fieldName, filepath.Base(path))
 	if err != nil {
 		return err
 	}
@@ -464,7 +464,7 @@ func escapeQuotes(s string) string {
 }
 
 // createFromFile is used to specify Content-Type for form data file upload.
-func createFormFile(w *multipart.Writer, fieldName, fileName string) (io.Writer, error) {
+func createFromFile(w *multipart.Writer, fieldName, fileName string) (io.Writer, error) {
     h := make(textproto.MIMEHeader)
 	h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
 			escapeQuotes(fieldName), escapeQuotes(fileName)))
